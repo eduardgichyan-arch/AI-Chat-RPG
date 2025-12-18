@@ -16,6 +16,11 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static(__dirname));
 
+// Explicitly serve index.html for root (fixes Vercel "Cannot GET /")
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "index.html"));
+});
+
 const API_KEY = process.env.API_KEY || "";
 const PORT = process.env.PORT || 3000;
 
