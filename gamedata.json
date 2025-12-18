@@ -2,70 +2,97 @@
   "player": {
     "name": "Adventurer",
     "level": 1,
-    "xp": 10,
-    "totalXpEarned": 10,
-    "title": "Curious Beginner",
+    "xp": 0,
+    "totalXpEarned": 0,
+    "title": "Novice Explorer",
     "stats": {
-      "health": 5,
-      "energy": 15,
-      "focus": 53,
-      "creativity": 10,
-      "productivity": 12,
-      "kindness": 10,
-      "awareness": 10,
-      "consistency": null
+      "health": 100,
+      "energy": 30,
+      "focus": 50,
+      "creativity": 40,
+      "productivity": 50,
+      "kindness": 60,
+      "awareness": 50
     },
-    "streak": 1,
-    "longestStreak": 1,
-    "currentDay": 17,
-    "lastMessageDay": "Wed Dec 17 2025",
-    "lastMessageTime": 1765985250379,
+    "streak": 0,
+    "longestStreak": 0,
+    "currentDay": 1,
+    "lastMessageDay": null,
+    "lastMessageTime": 0,
     "badges": [],
     "inventory": [],
-    "personalityType": "INTP",
+    "personalityType": "INFP",
     "statistics": {
-      "totalMessages": 1,
-      "totalXpEarned": 10,
-      "averageXpPerMessage": 10,
-      "highestSingleMessageXp": 10,
+      "totalMessages": 0,
+      "totalXpEarned": 0,
+      "averageXpPerMessage": 0,
+      "highestSingleMessageXp": 0,
       "totalHighQualityMessages": 0,
       "totalDaysActive": 1,
       "favoriteQuestionType": "Analytical",
       "questsCompleted": 0,
       "dailyQuestsCompletedTotal": 0
-    },
-    "titleLevel": 1
+    }
   },
   "dailyQuests": [
     {
-      "title": "Earn 50+ XP in one message",
+      "title": "Reach 500+ character question",
       "target": 1,
-      "type": "high-xp-message",
-      "xp": 60,
+      "type": "long-message",
+      "xp": 50,
       "id": 0,
       "progress": 0,
       "completed": false
     },
     {
-      "title": "Send 3 meaningful messages",
+      "title": "Build a 3-message conversation",
       "target": 3,
-      "type": "messages",
-      "xp": 50,
+      "type": "streak",
+      "xp": 55,
       "id": 1,
-      "progress": 1,
+      "progress": 0,
       "completed": false
     },
     {
-      "title": "Maintain 70+ Focus during session",
+      "title": "Ask a philosophical question",
       "target": 1,
-      "type": "focus-maintenance",
-      "xp": 45,
+      "type": "philosophical",
+      "xp": 35,
       "id": 2,
       "progress": 0,
       "completed": false
     }
   ],
-  "lastQuestGenerationDay": "Wed Dec 17 2025",
-  "messageCount": 1,
-  "weeklyQuests": []
+  "lastQuestGenerationDay": "Thu Dec 18 2025",
+  "messageCount": 0,
+  "weeklyQuests": [
+    {
+      "title": "Send 50 messages this week",
+      "target": 50,
+      "type": "volume",
+      "xp": 300,
+      "id": 0,
+      "progress": 0,
+      "completed": false
+    },
+    {
+      "title": "Ask 20 questions",
+      "target": 20,
+      "type": "questions",
+      "xp": 200,
+      "id": 1,
+      "progress": 0,
+      "completed": false
+    },
+    {
+      "title": "Maintain 80+ Focus for 3 days",
+      "target": 3,
+      "type": "focus-week",
+      "xp": 250,
+      "id": 2,
+      "progress": 0,
+      "completed": false
+    }
+  ],
+  "lastWeeklyQuestGenDate": "Thu Dec 18 2025"
 }

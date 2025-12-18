@@ -1,20 +1,27 @@
-// stats.js - Robust Standalone Stats Page
+// stats.js - Robust Standalone Stats Page (Client-Side Persistence)
 
 document.addEventListener('DOMContentLoaded', () => {
     loadStats();
-    // Auto-refresh every 10 seconds
     setInterval(loadStats, 10000);
 });
 
 async function loadStats() {
     try {
-        const response = await fetch('/stats'); // The "One Ring" endpoint
+        // Get Local State
+        const savedState = localStorage.getItem('gameState');
+        const gameState = savedState ? JSON.parse(savedState) : {};
+
+        const response = await fetch('/stats', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ gameState: gameState })
+        });
+
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
         const data = await response.json();
         renderStats(data);
 
-        // Clear errors if successful
         const errorEl = document.getElementById('error-banner');
         if (errorEl) errorEl.style.display = 'none';
 
@@ -25,22 +32,18 @@ async function loadStats() {
 }
 
 function renderStats(data) {
-    // Player
     setText('playerName', data.player.name);
     setText('playerLevel', data.player.level);
     setText('titleIcon', data.title.icon);
     setText('titleName', data.title.name);
 
-    // XP
     setText('totalXp', data.player.totalXpEarned);
     setText('currentXp', data.player.xp);
     setText('xpForNext', data.player.xpForNextLevel);
 
-    // Level Progress
     const levelPct = (data.player.xp / 100) * 100;
     setWidth('levelProgressBar', levelPct);
 
-    // Title Progress
     if (data.title.maxXpForCurrent === Infinity) {
         setText('titleProgress', 'Max Rank!');
         setWidth('titleProgressBar', 100);
@@ -48,17 +51,14 @@ function renderStats(data) {
         const range = data.title.maxXpForCurrent - data.title.minXpForCurrent;
         const current = data.player.totalXpEarned - data.title.minXpForCurrent;
         const pct = Math.min(100, Math.max(0, (current / range) * 100));
-
         setText('titleProgress', `${data.title.xpToNextTitle} XP to next rank`);
         setWidth('titleProgressBar', pct);
     }
 
-    // Streaks
     setText('currentStreak', data.streaks.current);
     setText('longestStreak', data.streaks.longest);
     setText('totalDaysActive', data.statistics.totalDaysActive);
 
-    // Core Stats Grid
     const coreContainer = document.getElementById('coreStats');
     if (coreContainer && data.stats) {
         const s = data.stats;
@@ -82,20 +82,13 @@ function renderStats(data) {
         `).join('');
     }
 
-    // Badges
     const badgesContainer = document.getElementById('badgesContainer');
     if (badgesContainer && data.badges.earned) {
         if (data.badges.earned.length === 0) {
             badgesContainer.innerHTML = '<div style="opacity:0.5; width:100%; text-align:center;">No badges yet</div>';
         } else {
             badgesContainer.innerHTML = data.badges.earned.map(b => `
-                <div title="${b.name}" style="
-                    background: rgba(255,255,255,0.1); 
-                    padding: 10px; 
-                    border-radius: 8px; 
-                    text-align: center; 
-                    cursor: help;
-                    min-width: 40px;">
+                <div title="${b.name}" style="background: rgba(255,255,255,0.1); padding: 10px; border-radius: 8px; text-align: center; cursor: help; min-width: 40px;">
                     <div style="font-size: 24px;">${b.name.split(' ')[0]}</div>
                 </div>
             `).join('');
@@ -103,17 +96,14 @@ function renderStats(data) {
     }
 }
 
-// Helpers
 function setText(id, val) {
     const el = document.getElementById(id);
     if (el) el.textContent = val;
 }
-
 function setWidth(id, pct) {
     const el = document.getElementById(id);
     if (el) el.style.width = `${pct}%`;
 }
-
 function showError(msg) {
     let banner = document.getElementById('error-banner');
     if (!banner) {

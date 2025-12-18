@@ -1,17 +1,28 @@
-// quiz.js - Personality Quiz Logic
+// quiz.js - Personality Quiz Logic (Client-Side Persistence)
 
 document.addEventListener('DOMContentLoaded', () => {
     checkQuizStatus();
 });
 
+function getGameState() {
+    const s = localStorage.getItem('gameState');
+    return s ? JSON.parse(s) : null; // Return null if not init
+}
+
 async function checkQuizStatus() {
     try {
-        const res = await fetch('/game-status');
-        const data = await res.json();
+        const gameState = getGameState();
 
-        // If personality is unknown or missing, show quiz
-        if (!data.player.personalityType || data.player.personalityType === "Unknown") {
+        // If no state, we need to initialize one or just run quiz?
+        // If no state, wait for script.js to fetch default?
+        // We can check if personality is unknown.
+
+        // If state exists (loaded by script.js likely), check personality
+        if (gameState && (!gameState.player.personalityType || gameState.player.personalityType === "Unknown")) {
             startQuiz();
+        } else if (!gameState) {
+            // If completely missing, retry after short delay (let script.js load default)
+            setTimeout(checkQuizStatus, 500);
         }
     } catch (e) {
         console.error("Could not check quiz status", e);
@@ -19,89 +30,25 @@ async function checkQuizStatus() {
 }
 
 const questions = [
-    {
-        id: 1,
-        text: "I make friends easily.",
-        stat: "energy",
-        weight: 10
-    },
-    {
-        id: 2,
-        text: "I have a vivid imagination.",
-        stat: "creativity",
-        weight: 10
-    },
-    {
-        id: 3,
-        text: "I worry about things.",
-        stat: "awareness",
-        weight: 10
-    },
-    {
-        id: 4,
-        text: "I trust others.",
-        stat: "kindness",
-        weight: 10
-    },
-    {
-        id: 5,
-        text: "I complete tasks successfully.",
-        stat: "productivity",
-        weight: 10
-    },
-    {
-        id: 6,
-        text: "I get angry easily.",
-        stat: "awareness", // High reactivity/awareness
-        weight: 10
-    },
-    {
-        id: 7,
-        text: "I love large parties.",
-        stat: "energy",
-        weight: 10
-    },
-    {
-        id: 8,
-        text: "I believe that art is important.",
-        stat: "creativity",
-        weight: 10
-    },
-    {
-        id: 9,
-        text: "I use my time wisely.",
-        stat: "productivity",
-        weight: 10
-    },
-    {
-        id: 10,
-        text: "I like to make people feel welcome.",
-        stat: "kindness",
-        weight: 10
-    }
+    { id: 1, text: "I make friends easily.", stat: "energy", weight: 10 },
+    { id: 2, text: "I have a vivid imagination.", stat: "creativity", weight: 10 },
+    { id: 3, text: "I worry about things.", stat: "awareness", weight: 10 },
+    { id: 4, text: "I trust others.", stat: "kindness", weight: 10 },
+    { id: 5, text: "I complete tasks successfully.", stat: "productivity", weight: 10 },
+    { id: 6, text: "I get angry easily.", stat: "awareness", weight: 10 },
+    { id: 7, text: "I love large parties.", stat: "energy", weight: 10 },
+    { id: 8, text: "I believe that art is important.", stat: "creativity", weight: 10 },
+    { id: 9, text: "I use my time wisely.", stat: "productivity", weight: 10 },
+    { id: 10, text: "I like to make people feel welcome.", stat: "kindness", weight: 10 }
 ];
 
 let currentQuestion = 0;
-let userScores = {
-    creativity: 50,
-    productivity: 50,
-    energy: 50,
-    kindness: 50,
-    awareness: 50
-};
+let userScores = { creativity: 50, productivity: 50, energy: 50, kindness: 50, awareness: 50 };
 
 function startQuiz() {
-    // Reset State
     currentQuestion = 0;
-    userScores = {
-        creativity: 50,
-        productivity: 50,
-        energy: 50,
-        kindness: 50,
-        awareness: 50
-    };
+    userScores = { creativity: 50, productivity: 50, energy: 50, kindness: 50, awareness: 50 };
 
-    // Create Overlay
     const overlay = document.createElement('div');
     overlay.id = 'quiz-overlay';
     overlay.className = 'quiz-overlay';
@@ -109,18 +56,10 @@ function startQuiz() {
         <div class="glass-panel quiz-container">
             <div class="quiz-header">
                 <h2>✨ Setup Your Profile</h2>
-                <div class="progress-bar-bg">
-                    <div id="quiz-progress" class="progress-bar-fill" style="width: 0%"></div>
-                </div>
+                <div class="progress-bar-bg"><div id="quiz-progress" class="progress-bar-fill" style="width: 0%"></div></div>
             </div>
-            
-            <div id="quiz-content">
-                <!-- Question injected here -->
-            </div>
-
-            <div class="quiz-footer">
-                <span id="q-counter">Question 1 of ${questions.length}</span>
-            </div>
+            <div id="quiz-content"></div>
+            <div class="quiz-footer"><span id="q-counter">Question 1 of ${questions.length}</span></div>
         </div>
     `;
 
@@ -136,8 +75,6 @@ function showQuestion(index) {
 
     progress.style.width = `${((index) / questions.length) * 100}%`;
     counter.textContent = `Question ${index + 1} of ${questions.length}`;
-
-    // Fade out
     content.style.opacity = 0;
 
     setTimeout(() => {
@@ -158,55 +95,51 @@ function showQuestion(index) {
 
 window.answerQuestion = function (value) {
     try {
-        if (currentQuestion >= questions.length) return; // Prevention
-
+        if (currentQuestion >= questions.length) return;
         const q = questions[currentQuestion];
-        if (!q) {
-            console.error("Invalid question index:", currentQuestion);
-            finishQuiz();
-            return;
-        }
+        if (!q) { finishQuiz(); return; }
 
-        // Calculate score change (1-5 scale)
         const impact = (value - 3) * 10;
-
         if (userScores[q.stat] !== undefined) {
             userScores[q.stat] += impact;
             userScores[q.stat] = Math.max(0, Math.min(100, userScores[q.stat]));
         }
 
         currentQuestion++;
-
-        if (currentQuestion < questions.length) {
-            showQuestion(currentQuestion);
-        } else {
-            finishQuiz();
-        }
+        if (currentQuestion < questions.length) showQuestion(currentQuestion);
+        else finishQuiz();
     } catch (e) {
         console.error("Quiz Error:", e);
-        alert("Something went wrong with the quiz. Please refresh.");
+        alert("Quiz error. Please refresh.");
     }
 };
 
 async function finishQuiz() {
     const type = calculatePersonalityType();
-
-    // Show loading
     const content = document.getElementById('quiz-content');
     content.innerHTML = `<div style="text-align: center; padding: 40px;"><span class="loading-spinner"></span> Analyzing Personality...</div>`;
 
     try {
-        // Save to server
+        // Get current state to inject profile into
+        const gameState = getGameState();
+
+        // POST to server to merge profile
         const res = await fetch('/init-profile', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 stats: userScores,
-                personalityType: type
+                personalityType: type,
+                gameState: gameState // Pass current state
             })
         });
 
         if (res.ok) {
+            const data = await res.json();
+            // SAVE UPDATED STATE
+            if (data.gameState) {
+                localStorage.setItem('gameState', JSON.stringify(data.gameState));
+            }
             showResult(type);
         } else {
             console.error("Failed to save profile");
@@ -218,22 +151,16 @@ async function finishQuiz() {
 }
 
 function calculatePersonalityType() {
-    // Simple logic to generate a 4-letter code like "ISIP"
-    // Just an example mapping based on highest stats
     const letters = [];
-
-    letters.push(userScores.energy > 50 ? 'E' : 'I'); // Extraverted / Introverted
-    letters.push(userScores.awareness > 50 ? 'S' : 'N'); // Sensing / Intuitive
-    letters.push(userScores.kindness > 50 ? 'F' : 'T'); // Feeling / Thinking
-    letters.push(userScores.productivity > 50 ? 'J' : 'P'); // Judging / Perceiving
-
+    letters.push(userScores.energy > 50 ? 'E' : 'I');
+    letters.push(userScores.awareness > 50 ? 'S' : 'N');
+    letters.push(userScores.kindness > 50 ? 'F' : 'T');
+    letters.push(userScores.productivity > 50 ? 'J' : 'P');
     return letters.join('');
 }
 
 function showResult(type) {
     const content = document.getElementById('quiz-content');
-    const overlay = document.getElementById('quiz-overlay');
-
     content.innerHTML = `
         <div style="text-align: center; animation: fadeIn 0.5s;">
             <div style="font-size: 60px; margin-bottom: 20px;">✨</div>
@@ -250,9 +177,6 @@ window.closeQuiz = function () {
     overlay.style.opacity = 0;
     setTimeout(() => {
         overlay.remove();
-        // Update stats without reloading (prevents reset loop)
-        if (window.fetchGameStatus) {
-            window.fetchGameStatus();
-        }
+        if (window.fetchGameStatus) window.fetchGameStatus();
     }, 500);
 };
